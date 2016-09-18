@@ -1,0 +1,7 @@
+/home/delpho/projects/php/JurassicJungle/logs/*.log {
+        rotate 15
+        size=100k
+        delaycompress
+	notifempty
+	sharedscripts
+}
