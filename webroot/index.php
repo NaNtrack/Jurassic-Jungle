@@ -20,11 +20,7 @@ if ( $success === true ) {
 
 	$headers = 'Content-type: text/plain; charset=iso-8859-1' . "\r\n";
 
-	// Additional headers
-	$headers .= 'To: Julio Araya Cerda <julioarayacerda@gmail.com>' . "\r\n";
-	$headers .= 'From: Jurassic Jungle <www-data@maletindepoker.cl>' . "\r\n";
-	
-	mail('julioarayacerda@gmail.com', 'Jurassic Jungle Status @ ' .gmdate("Y-m-d H:i:s"), $msj, $headers);
+	mail(JJ_EMAIL, 'Jurassic Jungle Status @ ' .gmdate("Y-m-d H:i:s"), $msj, $headers);
 } else {
 	echo 'Invalid password or username';
 }
