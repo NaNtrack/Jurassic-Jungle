@@ -21,51 +21,51 @@
  * @author delpho
  */
 class JJClient {
-	
+
 	const BASE_URL = 'http://www.jurassicjungle.com/';
-	
+
 	const BANK_ACTION_DEPOSIT  = 'deposit';
 	const BANK_ACTION_WITHDRAW = 'withdraw';
-	
+
 	/**
 	 * La cookie entregada por www.jurassicjungle.com
 	 *
 	 * @var string
 	 */
 	private $cookie_session;
-	
+
 	/**
 	 * El email del jugador
 	 *
 	 * @var string
 	 */
 	private $email;
-	
+
 	/**
 	 * Las estadisticas del jugador
 	 *
 	 * @var array
 	 */
 	private $stats;
-	
+
 	/**
 	 * Indica si el jugador está entrenando actualmente
 	 *
 	 * @var bool
 	 */
 	private $training;
-	
+
 	/**
 	 * Cliente HTTP
 	 *
 	 * @var HttpClient
 	 */
 	private $httpClient;
-	
-	
+
+
 	/**
 	 * Inicializa el cliente de Jurassic Jungle
-	 * 
+	 *
 	 */
 	public function __construct() {
 		$this->httpClient = new HttpClient();
@@ -76,7 +76,7 @@ class JJClient {
 		$this->stats = self::emptyStats();
 		$this->training = false;
 	}
-	
+
 	/**
 	 * Retorna un arreglo vacío de estadisticas
 	 *
@@ -105,7 +105,7 @@ class JJClient {
 				'wisdom'	=> null
 			),
 			'currency' => array(
-				'scales'	=> null,				
+				'scales'	=> null,
 				'bank'		=> null,
 				'rubidium'	=> null,
 				'tentralae'	=> null,
@@ -120,11 +120,11 @@ class JJClient {
 			    'ox_blood'		=> null,
 			    'ox_blood_url'	=> null,
 			    'bones'		=> null,
-			    'turns'		=> null	
+			    'turns'		=> null
 			)
 		);
 	}
-	
+
 	/**
 	 * Retorna la cantidad de scales que tiene el usuario en su bolsillo.
 	 *
@@ -133,7 +133,7 @@ class JJClient {
 	public function getScales () {
 		return (int)$this->stats['currency']['scales'];
 	}
-	
+
 	/**
 	 * Retorna la cantidad de scales que tiene el usuario en el banco.
 	 *
@@ -142,7 +142,7 @@ class JJClient {
 	public function getBankScales () {
 		return (int)$this->stats['currency']['bank'];
 	}
-	
+
 	/**
 	 * Retorna el valor HP actual del usuario
 	 *
@@ -151,7 +151,7 @@ class JJClient {
 	public function getCurrentHP () {
 		return (int)$this->stats['personal']['hp'];
 	}
-	
+
 	/**
 	 * Retorna el valor HP maximo del usuario
 	 *
@@ -160,7 +160,7 @@ class JJClient {
 	public function getMaxHP () {
 		return (int)$this->stats['personal']['hp_max'];
 	}
-	
+
 	/**
 	 * Retorna el valor de energia actual del usuario
 	 *
@@ -169,7 +169,7 @@ class JJClient {
 	public function getCurrentEnergy () {
 		return (int)$this->stats['personal']['energy'];
 	}
-	
+
 	/**
 	 * Retorna el valor de energia maximo del usuario
 	 *
@@ -178,43 +178,43 @@ class JJClient {
 	public function getMaxEnergy () {
 		return (int)$this->stats['personal']['energy_max'];
 	}
-	
+
 	public function getRubidium () {
 		return (int)$this->stats['currency']['rubidium'];
 	}
-	
+
 	public function getBones () {
 		return (int)$this->stats['food']['bones'];
 	}
-	
+
 	public function getSpikedLemon () {
 		return (int)$this->stats['food']['spiked_lemon'];
 	}
-	
+
 	public function getSpikeLemonConsumeURL () {
 		return $this->stats['food']['spiked_lemon_url'];
 	}
-	
+
 	public function getDeathSweat () {
 		return (int)$this->stats['food']['death_sweat'];
 	}
-	
+
 	public function getDeathSweatConsumeURL () {
 		return $this->stats['food']['death_sweat_url'];
 	}
-	
+
 	public function getOxBlood () {
 		return (int)$this->stats['food']['ox_blood'];
 	}
-	
+
 	public function getOxBloodConsumeURL () {
 		return $this->stats['food']['ox_blood_url'];
 	}
-	
+
 	public function getTurns () {
 		return (int)$this->stats['food']['turns'];
 	}
-	
+
 	/**
 	 * Intenta iniciar sesion en www.jurassicjungle.com usando el email y el
 	 * password entregados
@@ -249,105 +249,105 @@ class JJClient {
 		} catch (Exception $ex) {
 			Log::getInstance()->logException($ex);
 			return false;
-		} 
+		}
 		return false;
 	}
-	
+
 	/**
 	 * Inicializa las estadisticas del usuario y reabastece el inventario
-	 *  
+	 *
 	 * @param bool $displayStats True para mostrar las estadisticas del usuarios
 	 */
 	public function init ($displayStats = false) {
 		Log::getInstance()->log("[init] Iniciando cliente...");
 		return $this->updateStats($displayStats, true);
 	}
-	
+
 	/**
 	 * Actualiza las estadisticas del usuario
 	 *
-	 * @param bool $displayStats True para mostrar las estadisticas del usuario 
+	 * @param bool $displayStats True para mostrar las estadisticas del usuario
 	 */
 	private function updateStats ($displayStats = false , $updateFood = false) {
 		//Log::getInstance()->log("[stats] Actualizando estadisticas del usuario");
 		try {
 			$body = $this->httpClient->doGetRequest('http://www.jurassicjungle.com/stats.php');
-			
+
 			/******************************************************/
 			/**                     PERSONAL                     **/
 			/******************************************************/
 			//Email
 			$this->stats['personal']['email'] = $this->email;
-			
+
 			//Game ID: <b>Game ID:</b> 267910<br>
 			$this->stats['personal']['game_id'] = JJUtil::getSubStringValue($body, '<b>Game ID:</b> ', '<br>');
-			
+
 			//Username: <a href="view.php?view={game_id}">{username}</b></a>
 			$this->stats['personal']['username'] = JJUtil::getSubStringValue($body, '<a href=view.php?view='.$this->stats['personal']['game_id'].'>', '</b>');
 
 			//Level: <b>Level:</b> 32<br>
 			$this->stats['personal']['level'] = JJUtil::getSubStringValue($body, '<b>Level:</b> ', '<br>');
-			
+
 			//Experience: <b>Experience:</b> 1081/63040 [1%]
 			$valor = JJUtil::getSubStringValue($body, '<b>Experience:</b> ', ' [');
 			list($cur, $max) = explode("/",trim($valor));
 			$this->stats['personal']['exp'] = $cur;
 			$this->stats['personal']['exp_max'] = $max;
-			
+
 			//HP: <b>HP:</b> 465/465<br>
 			$valor = JJUtil::getSubStringValue($body, '<b>HP:</b> ', '<br>');
 			list($cur, $max) = explode("/",trim($valor));
 			$this->stats['personal']['hp'] = $cur;
 			$this->stats['personal']['hp_max'] = $max;
-			
+
 			//Energy: <b>Energy:</b> 70/70 [100%]
 			$valor = JJUtil::getSubStringValue($body, '<b>Energy:</b> ', ' [');
 			list($cur, $max) = explode("/",trim($valor));
 			$this->stats['personal']['energy'] = $cur;
 			$this->stats['personal']['energy_max'] = $max;
-			
-			
+
+
 			/******************************************************/
 			/**                      BATTLE                      **/
 			/******************************************************/
 			//Reset Tokens: <b>Reset Tokens:</b> 0 [
 			$this->stats['battle']['reset_tokens'] = JJUtil::getSubStringValue($body, '<b>Reset Tokens:</b> ', '[');
-			
+
 			//AP: <b>AP:</b> 0 [
 			$this->stats['battle']['ap'] = JJUtil::getSubStringValue($body, '<b>AP:</b> ', '[');
 
 			//Agility: <b>Agility:</b> 47.140<br>
 			$this->stats['battle']['agility'] = JJUtil::getSubStringValue($body, '<b>Agility:</b> ', '<br>');
-			
+
 			//Strength: <b>Strength:</b> 33.784<br>
 			$this->stats['battle']['strength'] = JJUtil::getSubStringValue($body, '<b>Strength:</b> ', '<br>');
-			
+
 			//Defense: <b>Defense:</b> 42.422<br>
 			$this->stats['battle']['defense'] = JJUtil::getSubStringValue($body, '<b>Defense:</b> ', '<br>');
-			
+
 			//Wisdom: <b>Wisdom:</b> 39.257<br>
 			$this->stats['battle']['wisdom'] = JJUtil::getSubStringValue($body, '<b>Wisdom:</b> ', '<br>');
-			
-			
+
+
 			/******************************************************/
 			/**                     CURRENCY                     **/
 			/******************************************************/
 			//Scales: <b>Scales:</b> 1,084<br>
 			$valor = JJUtil::getSubStringValue($body, '<b>Scales:</b> ', '<br>');
 			$this->stats['currency']['scales'] = trim(str_replace(',', '', $valor));
-			
+
 			//Bank: <b>Bank:</b> 18,256,773<br>
 			$valor = JJUtil::getSubStringValue($body, '<b>Bank:</b> ', '<br>');
 			$this->stats['currency']['bank'] = trim(str_replace(',', '', $valor));
-			
+
 			//Rubidium: <b>Rubidium:</b> 8<br>
 			$valor = JJUtil::getSubStringValue($body, '<b>Rubidium:</b> ', '<br>');
 			$this->stats['currency']['rubidium'] = trim(str_replace(',', '', $valor));
-			
+
 			//Tentralae: <b>Tentralae:</b> 0<br>
 			$valor = JJUtil::getSubStringValue($body, '<b>Tentralae:</b> ', '<br>');
 			$this->stats['currency']['tentralae'] = trim(str_replace(',', '', $valor));
-			
+
 			/*Pearl: <td>Pearl</td>
               <td><div align="right">
                   0                  <img
@@ -370,11 +370,11 @@ class JJClient {
 				$valor = substr($body, $strposInicio, $strposFin-$strposInicio);
 				$this->stats['currency']['senquin'] = trim(str_replace(',', '', $valor));
 			}
-			
+
 			/******************************************************/
 			/**                       FOOD                       **/
 			/******************************************************/
-			
+
 			/*Bones: <td>Bones: </td>
               <td><div align="right">8,406 <img
 			*/
@@ -385,7 +385,7 @@ class JJClient {
 				$valor = substr($body, $strposInicio, $strposFin-$strposInicio);
 				$this->stats['food']['bones'] = trim(str_replace(',', '', $valor));
 			}
-			
+
 			if ( $updateFood == true ) {
 				$food = $this->httpClient->doGetRequest('http://www.jurassicjungle.com/inventory.php');
 				$this->stats['food']['spiked_lemon'] = JJUtil::getSubStringValue($food, 'Spiked Lemon</a> (', ')');
@@ -399,16 +399,16 @@ class JJClient {
 				$this->stats['food']['turns'] = JJUtil::getSubStringValue($excavations, '<td><b>Turns</b>:</td><td>', '</td>');
 				unset($excavations);
 			}
-			
+
 			unset($body);
 			if ($displayStats) print_r($this->stats);
-			
+
 		} catch (Exception $ex) {
 			Log::getInstance()->logException($ex);
 		}
 		return $this->stats;
 	}
-	
+
 	/**
 	 * Hace que el usuario ingrese a la jungle interna. Se intenta mantener al usuario el mayor tiempo
 	 * posible de acuerdo a la cantidad de energia/hp y alimentos/bebidas que el usuario tenga en el inventario
@@ -418,29 +418,31 @@ class JJClient {
 			Log::getInstance()->log("[jungle] El usuario ya está en la jungla");
 			return;
 		}
-	
+
 		touch(LOGS_DIR.'innerjungle.txt');
-		
+
 		$this->checkEnergyAndHP();
 		$actions = array(
-			'wait'		=> 'innerjungle.php?action=explore&do=wait',
-			'take'		=> 'innerjungle.php?action=explore&do=take&colourhere=',
-			'anger'		=> 'innerjungle.php?action=explore&do=anger',
-			'ambush'	=> 'innerjungle.php?action=explore&do=ambush',
-			'chase'		=> 'innerjungle.php?action=explore&do=chase',
+			'wait'        => 'innerjungle.php?action=explore&do=wait',
+			'take'        => 'innerjungle.php?action=explore&do=take&colourhere=',
+			'anger'       => 'innerjungle.php?action=explore&do=anger',
+			'ambush'      => 'innerjungle.php?action=explore&do=ambush',
+			'chase'       => 'innerjungle.php?action=explore&do=chase',
 			'dodge_left'	=> 'innerjungle.php?action=explore&do=left',
 			'dodge_right'	=> 'innerjungle.php?action=explore&do=right',
-			'fight_1'	=> 'innerjungle.php?action=explore&do=fight&number=1',
-			'fight'		=> 'innerjungle.php?action=explore&do=fight',
-			'fight_king'	=> 'innerjungle.php?action=explore&do=king',
-			'push'		=> 'innerjungle.php?action=explore&do=push',
-			'battle'	=> 'innerjungle.php?action=battle',
-			'accept'	=> 'innerjungle.php?action=explore&do=yes',
-			'attack'	=> 'innerjungle.php?action=explore&do=attack',
-			'sneak'		=> 'innerjungle.php?action=explore&do=sneak',
-			'sell'		=> 'innerjungle.php?action=explore&do=sell',
-			'search'	=> 'innerjungle.php?action=explore&do=search',
-			'explore'	=> 'innerjungle.php?action=explore'
+			'fight_1'     => 'innerjungle.php?action=explore&do=fight&number=1',
+			'fight'       => 'innerjungle.php?action=explore&do=fight',
+			'fight_king'  => 'innerjungle.php?action=explore&do=king',
+			'push'        => 'innerjungle.php?action=explore&do=push',
+			'bridge'      => 'innerjungle.php?action=explore&do=bridge',
+			'battle'      => 'innerjungle.php?action=battle',
+			'accept'      => 'innerjungle.php?action=explore&do=yes',
+			'attack'      => 'innerjungle.php?action=explore&do=attack',
+			'sneak'       => 'innerjungle.php?action=explore&do=sneak',
+			'sell'        => 'innerjungle.php?action=explore&do=sell',
+			'search'      => 'innerjungle.php?action=explore&do=search',
+			'crumbs'      => 'innerjungle.php?action=explore&do=crumbs',
+			'explore'     => 'innerjungle.php?action=explore'
 		);
 		$actionName = 'enter';
 		$actionURL  = 'innerjungle.php';
@@ -500,7 +502,7 @@ class JJClient {
 				Log::getInstance()->logException($ex);
 				$actionName = null;
 			}
-			
+
 			//depositamos lo que tenemos en el bolsillo si tenemos mas de 500
 			if ( $this->getScales() > $scales ) {
 				$this->bank(self::BANK_ACTION_DEPOSIT);
@@ -512,11 +514,11 @@ class JJClient {
 		//depositamos lo que nos quede
 		$this->bank(self::BANK_ACTION_DEPOSIT);
 	}
-	
-	
+
+
 	private function checkEnergyAndHP () {
 		$this->updateStats();
-		
+
 		//HP
 		$loops = ceil($this->getMaxHP() / 100);
 		for ( $i = 0 ; $i < $loops ; $i++ ) {
@@ -531,7 +533,7 @@ class JJClient {
 				}
 			} else break;
 		}
-		
+
 		//Energia
 		if ( $this->getCurrentEnergy() < 15 ) {
 			Log::getInstance()->log("[energy] Tomando \"Spiked Lemon\" (+45 energy) ");
@@ -543,10 +545,10 @@ class JJClient {
 				return false;
 			}
 		}
-		
+
 		return true;
 	}
-	
+
 	/**
 	 * Entrena al usuario en la habilidad que menos puntaje tenga de manera
 	 * automatica.
@@ -554,9 +556,9 @@ class JJClient {
 	public function trainingFacility () {
 		$url = 'http://www.jurassicjungle.com/train.php?action=train';
 		$train = array(
-			'strength'	=> 'strength', 
-			'agility'	=> 'agility', 
-			'defense'	=> 'defense', 
+			'strength'	=> 'strength',
+			'agility'	=> 'agility',
+			'defense'	=> 'defense',
 			'wisdom'	=> 'wizdom'
 		);
 		//Determinamos que tenemos que entrenar...
@@ -571,7 +573,7 @@ class JJClient {
 		}
 		$params = array(
 			'train' => $train[$minItem],
-			'completed' => 'true'	
+			'completed' => 'true'
 		);
 		$tired = false;
 		$gained = 0;
@@ -595,7 +597,7 @@ class JJClient {
 		}
 		Log::getInstance()->log("[train] Fin del entrenamiento, ganado $gained de $minItem");
 	}
-	
+
 	/**
 	 * Realiza un deposito de todas las scales que tiene el usuario o retira
 	 * una cantidad de scales especificada
@@ -640,12 +642,12 @@ class JJClient {
 		Log::getInstance()->log("[bank] Operacion realizada");
 		return true;
 	}
-	
-	
+
+
 	public function food () {
 		//huesos destinados para comprar ox blood
 		$for_ox_blood = 500;
-		
+
 		//spiked lemon
 		if ( $this->getBones() > $for_ox_blood ) {
 			$real = $this->getBones() - $for_ox_blood;
@@ -668,9 +670,9 @@ class JJClient {
 		} else {
 			Log::getInstance()->log("[food] No hay huesos suficientes para comprar \"Death Sweat\"");
 		}
-		
+
 		$this->updateStats(false, true);
-		
+
 		//Ox Blood
 		if ( $this->getBones() >= 50 ) {
 			Log::getInstance()->log("[food] Comprando \"Ox Blood\"");
@@ -690,15 +692,15 @@ class JJClient {
 		} else {
 			Log::getInstance()->log("[food] No hay huesos suficientes para comprar \"Ox Blood\"");
 		}
-		
+
 		$this->updateStats(false, true);
-		
+
 		//vender la comida
 		//$this->sellDeathSweatFood();
 		//$this->sellOxBloodFood();
 	}
-	
-	
+
+
 	public function sellDeathSweatFood () {
 		$death_sweat = $this->getDeathSweat();
 		$death_sweat_url = $this->getDeathSweatConsumeURL();
@@ -718,7 +720,7 @@ class JJClient {
 		Log::getInstance()->log("[food] $i Death Sweat vendidas");
 		$this->bank(self::BANK_ACTION_DEPOSIT);
 	}
-	
+
 	public function sellOxBloodFood () {
 		$food = $this->getOxBlood();
 		$food_url = $this->getOxBloodConsumeURL();
@@ -738,13 +740,13 @@ class JJClient {
 		Log::getInstance()->log("[food] $i Ox Blood vendidas");
 		$this->bank(self::BANK_ACTION_DEPOSIT);
 	}
-	
+
 	public function excavations () {
 		$this->updateStats(false, true);
 		if ( $this->getTurns() > 0 ) {
 			Log::getInstance()->log("[excavations] Atacando excavaciones!");
 			$attacked = 0;
-			$bones = 0;	
+			$bones = 0;
 			try {
 				$page = rand(50,150);
 				$body = $this->httpClient->doGetRequest('http://www.jurassicjungle.com/excavation.php?view=listing&pageindex='.$page);
@@ -770,8 +772,8 @@ class JJClient {
 		$this->updateStats(false, true);
 		$this->food();
 	}
-	
-	
+
+
 	public function quarters () {
 		$rubidium = $this->getRubidium();
 		if ( $rubidium > 0 ) {
@@ -780,7 +782,7 @@ class JJClient {
 				$this->httpClient->doGetRequest(self::BASE_URL.'game_quarters.php?step=raises');
 			} catch ( Exception $ex ) {
 				Log::getInstance()->logException($ex);
-			}			
+			}
 		}
 	}
 }
